@@ -69,7 +69,7 @@ func (p *Partition) toBytes() ([]byte, error) {
 	b[6] = p.EndSector
 	b[7] = p.EndCylinder
 	binary.LittleEndian.PutUint32(b[8:12], p.Start)
-	binary.LittleEndian.PutUint64(b[12:16], p.Size)
+	binary.LittleEndian.PutUint32(b[12:16], uint32(p.Size))
 	return b, nil
 }
 
