@@ -16,7 +16,7 @@ type Partition struct {
 	Bootable      bool
 	Type          Type   //
 	Start         uint32 // Start first absolute LBA sector for partition
-	Size          uint32 // Size number of sectors in partition
+	Size          uint64 // Size number of sectors in partition
 	StartCylinder byte
 	StartHead     byte
 	StartSector   byte
@@ -69,7 +69,7 @@ func (p *Partition) toBytes() ([]byte, error) {
 	b[6] = p.EndSector
 	b[7] = p.EndCylinder
 	binary.LittleEndian.PutUint32(b[8:12], p.Start)
-	binary.LittleEndian.PutUint32(b[12:16], p.Size)
+	binary.LittleEndian.PutUint64(b[12:16], p.Size)
 	return b, nil
 }
 
@@ -98,7 +98,7 @@ func partitionFromBytes(b []byte) (*Partition, error) {
 		EndSector:     b[6],
 		EndCylinder:   b[7],
 		Start:         binary.LittleEndian.Uint32(b[8:12]),
-		Size:          binary.LittleEndian.Uint32(b[12:16]),
+		Size:          binary.LittleEndian.Uint64(b[12:16]),
 	}, nil
 }
 
@@ -111,7 +111,7 @@ func (p *Partition) writeContents(f util.File, logicalSectorSize, physicalSector
 	b := make([]byte, physicalSectorSize, physicalSectorSize)
 	// we start at the correct byte location
 	start := p.Start * uint32(logicalSectorSize)
-	size := p.Size * uint32(logicalSectorSize)
+	size := p.Size * uint64(logicalSectorSize)
 
 	// loop in physical sector sizes
 	for {
@@ -120,7 +120,7 @@ func (p *Partition) writeContents(f util.File, logicalSectorSize, physicalSector
 			return total, fmt.Errorf("Could not read contents to pass to partition: %v", err)
 		}
 		tmpTotal := uint64(read) + total
-		if uint32(tmpTotal) > size {
+		if tmpTotal > size {
 			return total, fmt.Errorf("Requested to write at least %d bytes to partition but maximum size is %d", tmpTotal, size)
 		}
 		var written int
@@ -152,7 +152,7 @@ func (p *Partition) readContents(f util.File, logicalSectorSize, physicalSectorS
 	b := make([]byte, physicalSectorSize, physicalSectorSize)
 	// we start at the correct byte location
 	start := p.Start * uint32(logicalSectorSize)
-	size := p.Size * uint32(logicalSectorSize)
+	size := p.Size * uint64(logicalSectorSize)
 
 	// loop in physical sector sizes
 	for {
