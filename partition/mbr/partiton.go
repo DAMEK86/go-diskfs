@@ -98,7 +98,7 @@ func partitionFromBytes(b []byte) (*Partition, error) {
 		EndSector:     b[6],
 		EndCylinder:   b[7],
 		Start:         binary.LittleEndian.Uint32(b[8:12]),
-		Size:          binary.LittleEndian.Uint64(b[12:16]),
+		Size:          uint64(binary.LittleEndian.Uint32(b[12:16])),
 	}, nil
 }
 
